@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  background: transparent;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #e8e8f0;
+  overflow: hidden;
+}
+
+:root {
+  --bg: rgba(14, 14, 30, 0.92);
+  --bg-card: rgba(26, 26, 60, 0.8);
+  --border: rgba(60, 60, 120, 0.4);
+  --accent: #6c5ce7;
+  --text-dim: #8888aa;
+}
+
+.dashboard {
+  height: 100%;
+  background: var(--bg);
+  backdrop-filter: blur(30px);
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+}
+
+/* ─── Header ─── */
+.dash-header {
+  padding: 16px 20px 0;
+  -webkit-app-region: drag;
+  flex-shrink: 0;
+}
+
+.dash-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.close-btn {
+  -webkit-app-region: no-drag;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-dim);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.close-btn:hover { background: rgba(231,76,60,0.3); color: #e74c3c; }
+
+/* 프로필 영역 */
+.profile-section {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 0 16px;
+  border-bottom: 1px solid var(--border);
+  -webkit-app-region: no-drag;
+}
+
+.profile-avatar {
+  width: 64px; height: 64px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255,255,255,0.15);
+  flex-shrink: 0;
+  overflow: hidden;
+  background: rgba(20,20,40,0.8);
+}
+
+.profile-avatar svg { width: 52px; height: 52px; }
+
+.profile-info { flex: 1; }
+.profile-name { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
+.profile-role { font-size: 12px; color: var(--text-dim); margin-bottom: 6px; }
+
+.profile-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.profile-status.working { background: rgba(0,184,148,0.15); color: #00b894; }
+.profile-status.resting { background: rgba(253,203,110,0.15); color: #fdcb6e; }
+.profile-status.vacation { background: rgba(225,112,85,0.15); color: #e17055; }
+
+.status-dot-sm {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ─── 탭 네비게이션 ─── */
+.dash-tabs {
+  display: flex;
+  padding: 12px 20px 0;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  -webkit-app-region: no-drag;
+}
+
+.dtab {
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.dtab:hover { color: #e8e8f0; }
+.dtab.active { color: #e8e8f0; border-bottom-color: var(--accent); }
+
+/* ─── 탭 컨텐츠 ─── */
+.tab-content {
+  flex: 1;
+  overflow-y: auto;
+  display: none;
+}
+
+.tab-content.active { display: flex; flex-direction: column; }
+
+/* ─── 페르소나/스킬 탭 ─── */
+.persona-tab {
+  padding: 16px 20px;
+}
+
+.field-group {
+  margin-bottom: 16px;
+}
+
+.field-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.field-textarea {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #e8e8f0;
+  font-size: 12px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+  line-height: 1.5;
+  min-height: 60px;
+}
+
+.field-textarea:focus { border-color: var(--accent); }
+
+.field-input {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  color: #e8e8f0;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+}
+
+.field-input:focus { border-color: var(--accent); }
+
+/* 스킬 태그 */
+.skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.skill-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  font-size: 11px;
+  color: #e8e8f0;
+}
+
+.skill-tag .remove {
+  cursor: pointer;
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.skill-tag .remove:hover { color: #e74c3c; }
+
+.add-skill-row {
+  display: flex;
+  gap: 6px;
+}
+
+.add-skill-row input {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #e8e8f0;
+  font-size: 11px;
+  outline: none;
+}
+
+.add-skill-row button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* 능력치 바 */
+.stat-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-label {
+  width: 60px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.stat-bar-bg {
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.stat-value {
+  font-size: 11px;
+  font-weight: 600;
+  width: 30px;
+  text-align: right;
+}
+
+/* ─── 채팅 탭 ─── */
+.chat-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.msg {
+  max-width: 82%;
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.msg.user { align-self: flex-end; }
+.msg.bot { align-self: flex-start; }
+
+.msg-bubble {
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.msg.user .msg-bubble {
+  background: var(--accent);
+  border-bottom-right-radius: 4px;
+}
+
+.msg.bot .msg-bubble {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 4px;
+}
+
+.msg-time {
+  font-size: 9px;
+  color: var(--text-dim);
+  margin-top: 3px;
+  padding: 0 4px;
+}
+
+.msg.user .msg-time { text-align: right; }
+
+.typing-msg .msg-bubble {
+  display: flex;
+  gap: 4px;
+  padding: 12px 18px;
+}
+
+.typing-msg span {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  animation: typeDot 1.4s infinite;
+}
+
+.typing-msg span:nth-child(2) { animation-delay: 0.2s; }
+.typing-msg span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typeDot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
+  30% { transform: translateY(-5px); opacity: 1; }
+}
+
+.chat-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  font-size: 13px;
+  text-align: center;
+  padding: 20px;
+  line-height: 1.6;
+}
+
+/* 입력 영역 */
+.chat-input-area {
+  padding: 10px 16px 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.attach-btn {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.attach-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+.attach-menu {
+  position: absolute;
+  bottom: 60px;
+  left: 16px;
+  background: rgba(20,20,45,0.98);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 6px;
+  display: none;
+  flex-direction: column;
+  z-index: 50;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+}
+
+.attach-menu.show { display: flex; }
+
+.attach-menu button {
+  background: none;
+  border: none;
+  color: #e8e8f0;
+  padding: 10px 14px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.attach-menu button:hover { background: rgba(108,92,231,0.2); }
+
+.attachments-preview {
+  padding: 8px 16px;
+  border-top: 1px solid var(--border);
+  display: none;
+  flex-wrap: wrap;
+  gap: 6px;
+  background: rgba(0,0,0,0.2);
+}
+
+.attachments-preview.has-items { display: flex; }
+
+.attachment-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  font-size: 11px;
+}
+
+.attachment-chip .remove-attach {
+  background: none;
+  border: none;
+  color: #e74c3c;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  line-height: 1;
+}
+
+.hidden-file-input { display: none; }
+
+.chat-input {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 14px;
+  color: #e8e8f0;
+  font-size: 13px;
+  font-family: inherit;
+  resize: none;
+  outline: none;
+  max-height: 100px;
+  line-height: 1.4;
+}
+
+.chat-input:focus { border-color: var(--accent); }
+
+.send-btn {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.send-btn:hover { background: #7c6cf7; transform: scale(1.05); }
+.send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* API 모달 */
+.api-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  border-radius: 20px;
+}
+
+.api-modal {
+  background: rgba(20,20,45,0.95);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 30px;
+  width: 85%;
+  max-width: 350px;
+  text-align: center;
+}
+
+.api-modal h3 { margin-bottom: 8px; font-size: 16px; }
+.api-modal p { font-size: 12px; color: var(--text-dim); margin-bottom: 16px; }
+
+.api-modal input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: #e8e8f0;
+  font-size: 13px;
+  outline: none;
+  margin-bottom: 12px;
+}
+
+.api-modal button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 10px 28px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* 스크롤바 */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+/* 상태 변경 메뉴 */
+.status-menu-popup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  background: rgba(20,20,45,0.95);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 50;
+  display: none;
+}
+
+.status-menu-popup.show { display: block; }
+
+.status-menu-popup button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 14px;
+  background: none;
+  border: none;
+  color: #e8e8f0;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.status-menu-popup button:hover { background: rgba(108,92,231,0.2); }
+</style>
+</head>
+<body>
+<div class="dashboard" id="dashboard">
+  <!-- API 키 모달 -->
+  <div class="api-overlay" id="api-overlay" style="display:none;">
+    <div class="api-modal" style="position:relative;">
+      <button onclick="document.getElementById('api-overlay').style.display='none'" style="position:absolute;top:10px;right:14px;background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;padding:4px;">✕</button>
+      <h3>API Key 설정</h3>
+      <p>Claude API 키를 입력하면<br>직원들이 일을 시작합니다.</p>
+      <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." />
+      <button onclick="submitApiKey()">확인</button>
+    </div>
+  </div>
+
+  <!-- 헤더 -->
+  <div class="dash-header">
+    <div class="dash-header-row">
+      <span style="font-size:13px; font-weight:600; color:var(--text-dim)">AI Office</span>
+      <button class="close-btn" onclick="api.closeDashboard()">✕</button>
+    </div>
+    <div class="profile-section" id="profile-section"></div>
+  </div>
+
+  <!-- 탭 -->
+  <div class="dash-tabs">
+    <button class="dtab active" data-tab="chat" onclick="switchTab('chat')">채팅</button>
+    <button class="dtab" data-tab="persona" onclick="switchTab('persona')">페르소나</button>
+    <button class="dtab" data-tab="skills" onclick="switchTab('skills')">능력/스킬</button>
+  </div>
+
+  <!-- 채팅 탭 -->
+  <div class="tab-content active" id="tab-chat">
+    <div class="chat-tab">
+      <div class="chat-messages" id="chat-messages">
+        <div class="chat-empty">직원을 선택하고<br>대화를 시작하세요</div>
+      </div>
+      <div class="attachments-preview" id="attachments-preview"></div>
+      <div class="chat-input-area" style="position:relative;">
+        <div class="attach-menu" id="attach-menu">
+          <button onclick="triggerFileInput('image')">🖼️ 이미지</button>
+          <button onclick="triggerFileInput('document')">📄 문서</button>
+          <button onclick="addTextAttachment()">📝 텍스트 메모</button>
+        </div>
+        <button class="attach-btn" onclick="toggleAttachMenu()">📎</button>
+        <textarea class="chat-input" id="chat-input" placeholder="메시지 입력..." rows="1"></textarea>
+        <button class="send-btn" id="send-btn" onclick="sendMessage()">↑</button>
+      </div>
+      <input type="file" class="hidden-file-input" id="file-input" onchange="handleFileSelect(event)">
+    </div>
+  </div>
+
+  <!-- 페르소나 탭 -->
+  <div class="tab-content" id="tab-persona">
+    <div class="persona-tab">
+      <div class="field-group">
+        <div class="field-label">성격 & 말투</div>
+        <textarea class="field-textarea" id="persona-personality" rows="3" placeholder="예: 든든한 형 같은 스타일, 반말을 씁니다..."></textarea>
+      </div>
+      <div class="field-group">
+        <div class="field-label">전문 분야</div>
+        <textarea class="field-textarea" id="persona-expertise" rows="3" placeholder="예: 노동법, 인사관리, 취업규칙..."></textarea>
+      </div>
+      <div class="field-group">
+        <div class="field-label">시스템 프롬프트 (고급)</div>
+        <textarea class="field-textarea" id="persona-system" rows="5" placeholder="AI에게 전달되는 전체 시스템 프롬프트..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- 능력/스킬 탭 -->
+  <div class="tab-content" id="tab-skills">
+    <div class="persona-tab">
+      <div class="field-group">
+        <div class="field-label">능력치</div>
+        <div class="stat-bars" id="stat-bars"></div>
+      </div>
+      <div class="field-group">
+        <div class="field-label">보유 스킬</div>
+        <div class="skill-tags" id="skill-tags"></div>
+        <div class="add-skill-row">
+          <input id="new-skill-input" placeholder="스킬 추가..." />
+          <button onclick="addSkill()">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="characters.js"></script>
+<script>
+  // ─── State ───
+  let currentEmployee = null;
+  let employees = [];
+  let chatHistories = {};  // id -> [{role, text}]
+  let employeePersonas = {}; // id -> {personality, expertise, system, skills, stats}
+  let isLoading = false;
+  let attachments = [];
+  let currentFileType = 'document';
+
+  // 기본 페르소나 데이터
+  const defaultPersonas = {
+    kim: {
+      personality: '차분하고 논리적인 변호사. 법적 근거를 명확히 제시. 존댓말 사용.',
+      expertise: '노동법 소송, 부당해고 구제, 노동위원회 대리, 법률 자문',
+      skills: ['소송 전략', '법률 자문', '부당해고 구제', '노동위원회 대리', '판례 분석'],
+      stats: { 분석력: 96, 실행력: 88, 소통력: 82, 전문성: 98, 창의성: 60 }
+    },
+    park: {
+      personality: '실무 경험 풍부한 노무사. 현실적 해결책 제시. 해요체 사용.',
+      expertise: '취업규칙, 인사제도 설계, 근로계약서, 인사노무 컨설팅',
+      skills: ['취업규칙 작성', '인사제도 설계', '근로계약서 검토', '노무 컨설팅', '인사관리'],
+      stats: { 분석력: 88, 실행력: 95, 소통력: 90, 전문성: 92, 창의성: 72 }
+    },
+    oh: {
+      personality: '안전 최우선 전문가. 체계적 설명. 합쇼체 사용. 단단하고 책임감 있음.',
+      expertise: '산업안전보건법, 안전보건관리체계, 위험성평가, 중대재해처벌법',
+      skills: ['위험성평가', '안전관리체계 구축', '중대재해법 대응', '안전교육', '사고조사'],
+      stats: { 분석력: 90, 실행력: 96, 소통력: 75, 전문성: 95, 창의성: 55 }
+    },
+    lee: {
+      personality: '트렌디하고 감각적인 MZ세대 디자이너. 반말. 아이디어 넘침.',
+      expertise: '프레젠테이션, 마케팅 콘텐츠, SNS 디자인, 브랜딩',
+      skills: ['브랜드 디자인', 'PPT 제작', 'SNS 콘텐츠', '카피라이팅', '트렌드 분석'],
+      stats: { 분석력: 70, 실행력: 88, 소통력: 92, 전문성: 78, 창의성: 98 }
+    },
+    jung: {
+      personality: '정확한 숫자와 계산에 강한 세무사. 실무적 답변. 존댓말 사용.',
+      expertise: '4대보험, 원천징수, 급여정산, 퇴직금 산정, 세무 신고',
+      skills: ['급여 정산', '4대보험 실무', '퇴직금 산정', '원천징수', '세무 신고'],
+      stats: { 분석력: 98, 실행력: 92, 소통력: 72, 전문성: 95, 창의성: 50 }
+    }
+  };
+
+  // ─── 초기화 ───
+  async function init() {
+    const { hasKey } = await api.checkApiKey();
+    if (!hasKey) document.getElementById('api-overlay').style.display = 'flex';
+
+    employees = await api.getEmployees();
+    employeePersonas = { ...defaultPersonas };
+
+    // 키보드 이벤트
+    document.getElementById('chat-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    });
+
+    document.getElementById('chat-input').addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+    });
+
+    // 직원 전환 수신
+    api.onSwitchEmployee(id => selectEmployee(id));
+  }
+
+  function selectEmployee(id) {
+    const emp = employees.find(e => e.id === id);
+    if (!emp) return;
+    currentEmployee = emp;
+    renderProfile(emp);
+    renderChat(emp);
+    renderPersona(emp);
+    renderSkills(emp);
+    switchTab('chat');
+    document.getElementById('chat-input').focus();
+  }
+
+  function renderProfile(emp) {
+    const section = document.getElementById('profile-section');
+    const statusLabels = { working: '업무 중', resting: '휴식중', vacation: '휴가' };
+    section.innerHTML = `
+      <div class="profile-avatar" style="border-color: ${emp.color}40">
+        ${createCharSVG(emp.id)}
+      </div>
+      <div class="profile-info">
+        <div class="profile-name">${emp.name}</div>
+        <div class="profile-role">${emp.role}</div>
+        <div class="profile-status ${emp.status}" style="position:relative" onclick="toggleStatus()">
+          <span class="status-dot-sm"></span>
+          ${emp.statusLabel || statusLabels[emp.status]}
+          <div class="status-menu-popup" id="status-popup">
+            <button onclick="changeStatus('working', '업무 중')">🟢 업무 중</button>
+            <button onclick="changeStatus('resting', '휴식중')">🟡 휴식중</button>
+            <button onclick="changeStatus('vacation', '휴가')">🔴 휴가</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function toggleStatus() {
+    document.getElementById('status-popup').classList.toggle('show');
+  }
+
+  async function changeStatus(status, label) {
+    if (!currentEmployee) return;
+    await api.setStatus(currentEmployee.id, status, label);
+    currentEmployee.status = status;
+    currentEmployee.statusLabel = label;
+    renderProfile(currentEmployee);
+  }
+
+  // ─── 탭 전환 ───
+  function switchTab(tab) {
+    document.querySelectorAll('.dtab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.dtab[data-tab="${tab}"]`).classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById(`tab-${tab}`).classList.add('active');
+  }
+
+  // ─── 채팅 ───
+  function renderChat(emp) {
+    const container = document.getElementById('chat-messages');
+    const history = chatHistories[emp.id] || [];
+    if (history.length === 0) {
+      container.innerHTML = `<div class="chat-empty">${emp.name}에게<br>메시지를 보내보세요</div>`;
+      return;
+    }
+    container.innerHTML = history.map(m => `
+      <div class="msg ${m.role}">
+        <div class="msg-bubble">${escapeHtml(m.text)}</div>
+        <div class="msg-time">${m.time}</div>
+      </div>
+    `).join('');
+    container.scrollTop = container.scrollHeight;
+  }
+
+  // ─── 첨부파일 ───
+  function toggleAttachMenu() {
+    document.getElementById('attach-menu').classList.toggle('show');
+  }
+
+  function triggerFileInput(type) {
+    currentFileType = type;
+    const input = document.getElementById('file-input');
+    input.accept = type === 'image' ? 'image/*' : '*/*';
+    input.click();
+    toggleAttachMenu();
+  }
+
+  function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const isImage = file.type.startsWith('image/');
+      attachments.push({
+        type: isImage ? 'image' : 'document',
+        name: file.name,
+        content: e.target.result
+      });
+      renderAttachments();
+    };
+    reader.readAsDataURL(file);
+    event.target.value = '';
+  }
+
+  function addTextAttachment() {
+    const text = prompt('텍스트 메모 입력:');
+    if (text) {
+      attachments.push({
+        type: 'text',
+        name: '메모',
+        content: text
+      });
+      renderAttachments();
+    }
+    toggleAttachMenu();
+  }
+
+  function renderAttachments() {
+    const container = document.getElementById('attachments-preview');
+    container.innerHTML = attachments.map((a, i) => `
+      <div class="attachment-chip">
+        ${a.type === 'image' ? '🖼️' : a.type === 'text' ? '📝' : '📄'} ${a.name}
+        <button class="remove-attach" onclick="removeAttachment(${i})">✕</button>
+      </div>
+    `).join('');
+    container.classList.toggle('has-items', attachments.length > 0);
+  }
+
+  function removeAttachment(index) {
+    attachments.splice(index, 1);
+    renderAttachments();
+  }
+
+  // 클릭 외부시 메뉴 닫기
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.attach-btn') && !e.target.closest('.attach-menu')) {
+      document.getElementById('attach-menu')?.classList.remove('show');
+    }
+  });
+
+  async function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if ((!text && attachments.length === 0) || !currentEmployee || isLoading) return;
+
+    isLoading = true;
+    document.getElementById('send-btn').disabled = true;
+    input.value = '';
+    input.style.height = 'auto';
+
+    const time = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+
+    // 메시지 + 첨부파일 표시
+    let displayText = text;
+    if (attachments.length > 0) {
+      const attachInfo = attachments.map(a => `📎 ${a.name}`).join(', ');
+      displayText = text ? `${text}\n\n${attachInfo}` : attachInfo;
+    }
+
+    if (!chatHistories[currentEmployee.id]) chatHistories[currentEmployee.id] = [];
+    chatHistories[currentEmployee.id].push({ role: 'user', text: displayText, time });
+
+    const container = document.getElementById('chat-messages');
+    const empty = container.querySelector('.chat-empty');
+    if (empty) empty.remove();
+
+    // 사용자 메시지
+    appendMsg('user', displayText, time);
+
+    // 첨부파일 컨텍스트 추가
+    let messageToSend = text;
+    if (attachments.length > 0) {
+      const attachContext = attachments.map(a => {
+        if (a.type === 'text') return `[텍스트 메모] ${a.content}`;
+        if (a.type === 'image') return `[이미지 첨부] ${a.name}`;
+        return `[문서 첨부] ${a.name}`;
+      }).join('\n');
+      messageToSend = `${text}\n\n[첨부파일]\n${attachContext}`;
+    }
+
+    // 첨부 초기화
+    attachments = [];
+    renderAttachments();
+
+    // 타이핑 표시
+    const typingEl = document.createElement('div');
+    typingEl.className = 'msg bot typing-msg';
+    typingEl.innerHTML = `<div class="msg-bubble"><span></span><span></span><span></span></div>`;
+    container.appendChild(typingEl);
+    container.scrollTop = container.scrollHeight;
+
+    const result = await api.sendMessage(currentEmployee.id, messageToSend);
+    typingEl.remove();
+
+    const replyTime = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+
+    if (result.error) {
+      appendMsg('bot', `[오류] ${result.error}`, replyTime);
+      chatHistories[currentEmployee.id].push({ role: 'bot', text: result.error, time: replyTime });
+    } else {
+      appendMsg('bot', result.reply, replyTime);
+      chatHistories[currentEmployee.id].push({ role: 'bot', text: result.reply, time: replyTime });
+    }
+
+    isLoading = false;
+    document.getElementById('send-btn').disabled = false;
+  }
+
+  function appendMsg(role, text, time) {
+    const container = document.getElementById('chat-messages');
+    const div = document.createElement('div');
+    div.className = `msg ${role}`;
+    div.innerHTML = `<div class="msg-bubble">${escapeHtml(text)}</div><div class="msg-time">${time}</div>`;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
+  // ─── 페르소나 ───
+  function renderPersona(emp) {
+    const p = employeePersonas[emp.id] || {};
+    document.getElementById('persona-personality').value = p.personality || '';
+    document.getElementById('persona-expertise').value = p.expertise || '';
+    document.getElementById('persona-system').value = emp.systemPrompt || '';
+  }
+
+  // ─── 능력/스킬 ───
+  function renderSkills(emp) {
+    const p = employeePersonas[emp.id] || {};
+    const stats = p.stats || {};
+    const skills = p.skills || [];
+
+    // 능력치 바
+    const statColors = { 분석력: '#3498DB', 실행력: '#2ECC71', 소통력: '#E67E22', 전문성: '#9B59B6', 창의성: '#E74C3C' };
+    document.getElementById('stat-bars').innerHTML = Object.entries(stats).map(([k, v]) => `
+      <div class="stat-row">
+        <span class="stat-label">${k}</span>
+        <div class="stat-bar-bg">
+          <div class="stat-bar-fill" style="width:${v}%; background:${statColors[k] || '#6c5ce7'}"></div>
+        </div>
+        <span class="stat-value" style="color:${statColors[k] || '#6c5ce7'}">${v}</span>
+      </div>
+    `).join('');
+
+    // 스킬 태그
+    document.getElementById('skill-tags').innerHTML = skills.map((s, i) => `
+      <div class="skill-tag">
+        ${s}
+        <span class="remove" onclick="removeSkill(${i})">×</span>
+      </div>
+    `).join('');
+  }
+
+  function addSkill() {
+    const input = document.getElementById('new-skill-input');
+    const skill = input.value.trim();
+    if (!skill || !currentEmployee) return;
+    if (!employeePersonas[currentEmployee.id]) employeePersonas[currentEmployee.id] = { skills: [] };
+    if (!employeePersonas[currentEmployee.id].skills) employeePersonas[currentEmployee.id].skills = [];
+    employeePersonas[currentEmployee.id].skills.push(skill);
+    input.value = '';
+    renderSkills(currentEmployee);
+  }
+
+  function removeSkill(idx) {
+    if (!currentEmployee) return;
+    employeePersonas[currentEmployee.id].skills.splice(idx, 1);
+    renderSkills(currentEmployee);
+  }
+
+  // ─── API 키 ───
+  async function submitApiKey() {
+    const key = document.getElementById('api-key-input').value.trim();
+    if (key) {
+      const { success } = await api.setApiKey(key);
+      if (success) document.getElementById('api-overlay').style.display = 'none';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

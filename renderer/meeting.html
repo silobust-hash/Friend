@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>회의실 - 동료들</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* 헤더 */
+    .header {
+      padding: 15px 20px;
+      background: rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      -webkit-app-region: drag;
+    }
+    
+    .header-icon { font-size: 28px; }
+    
+    .header-info h1 { font-size: 18px; font-weight: 600; }
+    .header-info .subtitle { font-size: 12px; color: #888; }
+    
+    .header-actions {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+      -webkit-app-region: no-drag;
+    }
+    
+    .header-btn {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: #fff;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .header-btn:hover { background: rgba(255,255,255,0.2); }
+    .header-btn.close:hover { background: #e74c3c; }
+    
+    /* 참석자 바 */
+    .attendees {
+      padding: 10px 20px;
+      background: rgba(0,0,0,0.2);
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+    }
+    
+    .attendee {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 60px;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    
+    .attendee.active { opacity: 1; }
+    
+    .attendee-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      position: relative;
+      border: 2px solid transparent;
+    }
+    
+    .attendee.active .attendee-avatar { border-color: #4a9eff; }
+    
+    .attendee-avatar .status {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid #1a1a2e;
+    }
+    
+    .status.working { background: #2ecc71; }
+    .status.resting { background: #f39c12; }
+    .status.vacation { background: #e74c3c; }
+    
+    .attendee-name {
+      font-size: 10px;
+      color: #aaa;
+      margin-top: 4px;
+      white-space: nowrap;
+    }
+    
+    .attendee-order {
+      font-size: 9px;
+      color: #4a9eff;
+      margin-top: 2px;
+    }
+    
+    /* 설정 패널 */
+    .settings-panel {
+      background: rgba(0,0,0,0.4);
+      padding: 15px 20px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .settings-panel.open { display: flex; }
+    
+    .settings-panel h3 {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 5px;
+    }
+    
+    .settings-panel textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      font-size: 13px;
+      resize: vertical;
+    }
+    
+    .settings-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    .settings-row label {
+      font-size: 13px;
+      color: #aaa;
+    }
+    
+    .settings-row input[type="number"] {
+      width: 60px;
+      padding: 5px 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+    }
+    
+    .settings-row input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+    }
+    
+    .save-settings-btn {
+      align-self: flex-end;
+      padding: 8px 16px;
+      background: #4a9eff;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      cursor: pointer;
+    }
+    
+    /* 채팅 영역 */
+    .chat-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    
+    .message {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .message.user { flex-direction: row-reverse; }
+    
+    .message-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    
+    .message.user .message-avatar { background: #4a9eff; }
+    
+    .message-content { max-width: 70%; }
+    
+    .message-sender {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 4px;
+    }
+    
+    .message.user .message-sender { text-align: right; }
+    
+    .message-bubble {
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    .message.user .message-bubble {
+      background: #4a9eff;
+      border-bottom-right-radius: 4px;
+    }
+    
+    .message:not(.user) .message-bubble {
+      background: rgba(255,255,255,0.1);
+      border-bottom-left-radius: 4px;
+    }
+    
+    .message.system { justify-content: center; }
+    
+    .message.system .message-bubble {
+      background: rgba(255,255,255,0.05);
+      color: #888;
+      font-size: 12px;
+      padding: 6px 12px;
+    }
+    
+    /* 첨부파일 미리보기 */
+    .attachments-preview {
+      padding: 10px 20px;
+      background: rgba(0,0,0,0.2);
+      display: none;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    
+    .attachments-preview.has-items { display: flex; }
+    
+    .attachment-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 20px;
+      font-size: 12px;
+    }
+    
+    .attachment-item .remove {
+      background: none;
+      border: none;
+      color: #e74c3c;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    /* 입력 영역 */
+    .input-area {
+      padding: 15px 20px;
+      background: rgba(0,0,0,0.3);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    .attach-btn {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: #fff;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+    }
+    
+    .attach-btn:hover { background: rgba(255,255,255,0.2); }
+    
+    .input-area input[type="text"] {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 24px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      font-size: 14px;
+    }
+    
+    .input-area input::placeholder { color: #666; }
+    .input-area input:focus { outline: none; background: rgba(255,255,255,0.15); }
+    
+    .send-btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 24px;
+      background: #4a9eff;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    
+    .send-btn:hover { background: #3a8eef; }
+    .send-btn:disabled { background: #333; cursor: not-allowed; }
+    
+    /* 로딩 */
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 10px 14px;
+    }
+    
+    .typing-indicator span {
+      width: 8px;
+      height: 8px;
+      background: #888;
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out;
+    }
+    
+    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+    
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+    
+    /* 파일 입력 숨김 */
+    .hidden-input { display: none; }
+    
+    /* 첨부 메뉴 */
+    .attach-menu {
+      position: absolute;
+      bottom: 80px;
+      left: 20px;
+      background: #2a2a4a;
+      border-radius: 12px;
+      padding: 8px;
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    
+    .attach-menu.open { display: flex; }
+    
+    .attach-menu button {
+      background: none;
+      border: none;
+      color: #fff;
+      padding: 10px 16px;
+      text-align: left;
+      cursor: pointer;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    
+    .attach-menu button:hover { background: rgba(255,255,255,0.1); }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-icon">🏢</div>
+    <div class="header-info">
+      <h1>회의실</h1>
+      <div class="subtitle">모든 동료들과 함께</div>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn" onclick="toggleSettings()" title="회의 설정">⚙️</button>
+      <button class="header-btn close" onclick="window.api.closeMeeting()">✕</button>
+    </div>
+  </div>
+  
+  <div class="settings-panel" id="settings-panel">
+    <h3>📋 회의 규칙 / 지침</h3>
+    <textarea id="meeting-rules" placeholder="예: 답변은 한 문장으로 요약해주세요. 법률 관련은 김 변호사가 먼저 답변합니다..."></textarea>
+    
+    <div class="settings-row">
+      <label>최대 응답자 수:</label>
+      <input type="number" id="max-responders" min="1" max="5" value="3">
+      
+      <input type="checkbox" id="auto-select" checked>
+      <label for="auto-select">키워드 기반 자동 선택</label>
+    </div>
+    
+    <button class="save-settings-btn" onclick="saveSettings()">설정 저장</button>
+  </div>
+  
+  <div class="attendees" id="attendees"></div>
+  
+  <div class="chat-area" id="chat-area">
+    <div class="message system">
+      <div class="message-bubble">회의실에 입장했습니다</div>
+    </div>
+  </div>
+  
+  <div class="attachments-preview" id="attachments-preview"></div>
+  
+  <div class="attach-menu" id="attach-menu">
+    <button onclick="triggerFileInput('image')">🖼️ 이미지</button>
+    <button onclick="triggerFileInput('document')">📄 문서</button>
+    <button onclick="addTextAttachment()">📝 텍스트 메모</button>
+  </div>
+  
+  <div class="input-area">
+    <button class="attach-btn" onclick="toggleAttachMenu()">📎</button>
+    <input type="text" id="message-input" placeholder="모두에게 말하기..." 
+           onkeypress="if(event.key==='Enter') sendMessage()">
+    <button class="send-btn" id="send-btn" onclick="sendMessage()">전송</button>
+  </div>
+  
+  <input type="file" class="hidden-input" id="file-input" accept="*/*" onchange="handleFileSelect(event)">
+  
+  <script>
+    const avatars = {
+      kim: '👨‍⚖️', park: '👩‍💼', oh: '👷', lee: '👩‍🎨', jung: '👨‍💼', user: '👤'
+    };
+    
+    let employees = [];
+    let meetingConfig = {};
+    let attachments = [];
+    let isProcessing = false;
+    let currentFileType = 'document';
+    
+    async function init() {
+      employees = await window.api.getEmployees();
+      meetingConfig = await window.api.getMeetingConfig();
+      renderAttendees();
+      loadSettings();
+    }
+    
+    function loadSettings() {
+      document.getElementById('meeting-rules').value = meetingConfig.rules || '';
+      document.getElementById('max-responders').value = meetingConfig.maxResponders || 3;
+      document.getElementById('auto-select').checked = meetingConfig.autoSelectByKeyword !== false;
+    }
+    
+    async function saveSettings() {
+      meetingConfig.rules = document.getElementById('meeting-rules').value;
+      meetingConfig.maxResponders = parseInt(document.getElementById('max-responders').value) || 3;
+      meetingConfig.autoSelectByKeyword = document.getElementById('auto-select').checked;
+      
+      await window.api.setMeetingConfig(meetingConfig);
+      alert('설정이 저장되었습니다!');
+    }
+    
+    function toggleSettings() {
+      document.getElementById('settings-panel').classList.toggle('open');
+    }
+    
+    function renderAttendees() {
+      const container = document.getElementById('attendees');
+      const order = meetingConfig.responseOrder || ['kim', 'park', 'oh', 'jung', 'lee'];
+      
+      container.innerHTML = employees.map((emp, i) => {
+        const orderIdx = order.indexOf(emp.id);
+        return `
+          <div class="attendee active" data-id="${emp.id}">
+            <div class="attendee-avatar">
+              ${avatars[emp.id] || '👤'}
+              <div class="status ${emp.status}"></div>
+            </div>
+            <div class="attendee-name">${emp.name.split(' ')[0]}</div>
+            ${orderIdx >= 0 ? `<div class="attendee-order">#${orderIdx + 1}</div>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+    
+    function addMessage(sender, text, isUser = false, isSystem = false) {
+      const chatArea = document.getElementById('chat-area');
+      const msg = document.createElement('div');
+      
+      if (isSystem) {
+        msg.className = 'message system';
+        msg.innerHTML = `<div class="message-bubble">${text}</div>`;
+      } else {
+        msg.className = `message ${isUser ? 'user' : ''}`;
+        const avatar = isUser ? '👤' : (avatars[sender] || '👤');
+        const emp = employees.find(e => e.id === sender);
+        const name = isUser ? '나' : (emp?.name || sender);
+        
+        msg.innerHTML = `
+          <div class="message-avatar">${avatar}</div>
+          <div class="message-content">
+            <div class="message-sender">${name}</div>
+            <div class="message-bubble">${text}</div>
+          </div>
+        `;
+      }
+      
+      chatArea.appendChild(msg);
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+    
+    function addTypingIndicator(employeeId) {
+      const chatArea = document.getElementById('chat-area');
+      const emp = employees.find(e => e.id === employeeId);
+      const indicator = document.createElement('div');
+      indicator.className = 'message';
+      indicator.id = `typing-${employeeId}`;
+      indicator.innerHTML = `
+        <div class="message-avatar">${avatars[employeeId] || '👤'}</div>
+        <div class="message-content">
+          <div class="message-sender">${emp?.name || employeeId}</div>
+          <div class="typing-indicator">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      `;
+      chatArea.appendChild(indicator);
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+    
+    function removeTypingIndicator(employeeId) {
+      const indicator = document.getElementById(`typing-${employeeId}`);
+      if (indicator) indicator.remove();
+    }
+    
+    // 첨부 관련
+    function toggleAttachMenu() {
+      document.getElementById('attach-menu').classList.toggle('open');
+    }
+    
+    function triggerFileInput(type) {
+      currentFileType = type;
+      const input = document.getElementById('file-input');
+      input.accept = type === 'image' ? 'image/*' : '*/*';
+      input.click();
+      toggleAttachMenu();
+    }
+    
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const isImage = file.type.startsWith('image/');
+        attachments.push({
+          type: isImage ? 'image' : 'document',
+          name: file.name,
+          content: e.target.result,
+          description: isImage ? '(이미지)' : '(문서)'
+        });
+        renderAttachments();
+      };
+      reader.readAsDataURL(file);
+      event.target.value = '';
+    }
+    
+    function addTextAttachment() {
+      const text = prompt('텍스트 메모 입력:');
+      if (text) {
+        attachments.push({
+          type: 'text',
+          name: '텍스트 메모',
+          content: text
+        });
+        renderAttachments();
+      }
+      toggleAttachMenu();
+    }
+    
+    function renderAttachments() {
+      const container = document.getElementById('attachments-preview');
+      container.innerHTML = attachments.map((a, i) => `
+        <div class="attachment-item">
+          <span>${a.type === 'image' ? '🖼️' : a.type === 'text' ? '📝' : '📄'} ${a.name}</span>
+          <button class="remove" onclick="removeAttachment(${i})">✕</button>
+        </div>
+      `).join('');
+      container.classList.toggle('has-items', attachments.length > 0);
+    }
+    
+    function removeAttachment(index) {
+      attachments.splice(index, 1);
+      renderAttachments();
+    }
+    
+    async function sendMessage() {
+      const input = document.getElementById('message-input');
+      const message = input.value.trim();
+      if (!message || isProcessing) return;
+      
+      input.value = '';
+      
+      // 첨부파일 표시
+      if (attachments.length > 0) {
+        const attachInfo = attachments.map(a => `📎 ${a.name}`).join(', ');
+        addMessage('user', `${message}\n\n${attachInfo}`, true);
+      } else {
+        addMessage('user', message, true);
+      }
+      
+      isProcessing = true;
+      document.getElementById('send-btn').disabled = true;
+      
+      // 회의실 메시지 전송
+      const result = await window.api.sendMeetingMessage(message, attachments);
+      
+      // 첨부 초기화
+      attachments = [];
+      renderAttachments();
+      
+      // 응답들 순차 표시
+      if (result.responses) {
+        for (const resp of result.responses) {
+          addTypingIndicator(resp.employeeId);
+          await new Promise(r => setTimeout(r, 500 + Math.random() * 1000));
+          removeTypingIndicator(resp.employeeId);
+          
+          if (resp.reply) {
+            addMessage(resp.employeeId, resp.reply);
+          } else if (resp.error) {
+            addMessage(resp.employeeId, `(${resp.error})`, false);
+          }
+          
+          await new Promise(r => setTimeout(r, 300));
+        }
+      }
+      
+      isProcessing = false;
+      document.getElementById('send-btn').disabled = false;
+    }
+    
+    // 클릭 외부 영역시 메뉴 닫기
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.attach-btn') && !e.target.closest('.attach-menu')) {
+        document.getElementById('attach-menu').classList.remove('open');
+      }
+    });
+    
+    init();
+  </script>
+</body>
+</html>

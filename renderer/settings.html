@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>동료들 - 설정</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .section {
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .section h2 {
+      font-size: 16px;
+      color: #a0a0a0;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+      color: #ccc;
+    }
+    
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      font-size: 14px;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: #4a9eff;
+    }
+    
+    .mode-selector {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .mode-btn {
+      flex: 1;
+      padding: 15px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      background: rgba(0,0,0,0.2);
+      color: #fff;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    
+    .mode-btn:hover {
+      border-color: rgba(255,255,255,0.4);
+    }
+    
+    .mode-btn.active {
+      border-color: #4a9eff;
+      background: rgba(74, 158, 255, 0.2);
+    }
+    
+    .mode-btn .icon {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+    
+    .mode-btn .label {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    
+    .mode-btn .desc {
+      font-size: 12px;
+      color: #888;
+      margin-top: 5px;
+    }
+    
+    .employee-card {
+      background: rgba(0,0,0,0.2);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 10px;
+    }
+    
+    .employee-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .employee-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    
+    .employee-info h3 {
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+    
+    .employee-info .role {
+      font-size: 12px;
+      color: #888;
+    }
+    
+    .connection-status {
+      margin-left: auto;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+    }
+    
+    .connection-status.api {
+      background: rgba(39, 174, 96, 0.3);
+      color: #2ecc71;
+    }
+    
+    .connection-status.clawdbot {
+      background: rgba(74, 158, 255, 0.3);
+      color: #4a9eff;
+    }
+    
+    .connection-status.none {
+      background: rgba(255,255,255,0.1);
+      color: #888;
+    }
+    
+    .clawdbot-config {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .clawdbot-config.hidden {
+      display: none;
+    }
+    
+    .input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .input-row input {
+      flex: 1;
+    }
+    
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: #4a9eff;
+      color: #fff;
+    }
+    
+    .btn-primary:hover {
+      background: #3a8eef;
+    }
+    
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    
+    .btn-success {
+      background: #27ae60;
+      color: #fff;
+    }
+    
+    .btn-danger {
+      background: #e74c3c;
+      color: #fff;
+    }
+    
+    .test-result {
+      margin-top: 10px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    
+    .test-result.success {
+      background: rgba(39, 174, 96, 0.2);
+      color: #2ecc71;
+    }
+    
+    .test-result.error {
+      background: rgba(231, 76, 60, 0.2);
+      color: #e74c3c;
+    }
+    
+    .toggle-btn {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #fff;
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>⚙️ 동료들 설정</h1>
+  
+  <div class="section">
+    <h2>연결 모드</h2>
+    <div class="mode-selector">
+      <div class="mode-btn" data-mode="api" onclick="setMode('api')">
+        <div class="icon">🔌</div>
+        <div class="label">API 모드</div>
+        <div class="desc">Claude API 직접 호출</div>
+      </div>
+      <div class="mode-btn" data-mode="clawdbot" onclick="setMode('clawdbot')">
+        <div class="icon">🤖</div>
+        <div class="label">Clawdbot 모드</div>
+        <div class="desc">Clawdbot Gateway 연결</div>
+      </div>
+    </div>
+    
+    <div id="api-config">
+      <div class="form-group">
+        <label>Anthropic API Key</label>
+        <div class="input-row">
+          <input type="password" id="api-key" placeholder="sk-ant-...">
+          <button class="btn-primary" onclick="saveApiKey()">저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="section">
+    <h2>캐릭터별 Clawdbot 설정</h2>
+    <p style="color:#888; font-size:13px; margin-bottom:15px;">
+      각 캐릭터에 개별 Clawdbot을 연결하면 해당 캐릭터는 Clawdbot 모드로 작동합니다.
+    </p>
+    <div id="employees-list"></div>
+  </div>
+  
+  <script>
+    let config = {};
+    
+    async function loadConfig() {
+      config = await window.api.getConfig();
+      renderConfig();
+    }
+    
+    function renderConfig() {
+      // 모드 버튼 활성화
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === config.connectionMode);
+      });
+      
+      // 직원 목록 렌더링
+      const container = document.getElementById('employees-list');
+      container.innerHTML = '';
+      
+      const avatars = { kim: '👨‍⚖️', park: '👩‍💼', oh: '👷', lee: '👩‍🎨', jung: '👨‍💼' };
+      
+      Object.entries(config.employees).forEach(([id, emp]) => {
+        const hasClawdbot = emp.clawdbot && emp.clawdbot.url;
+        const card = document.createElement('div');
+        card.className = 'employee-card';
+        card.innerHTML = `
+          <div class="employee-header">
+            <div class="employee-avatar">${avatars[id] || '👤'}</div>
+            <div class="employee-info">
+              <h3>${emp.name}</h3>
+              <div class="role">${id}</div>
+            </div>
+            <div class="connection-status ${hasClawdbot ? 'clawdbot' : 'api'}">
+              ${hasClawdbot ? '🤖 Clawdbot' : '🔌 API'}
+            </div>
+          </div>
+          <div class="clawdbot-config" id="config-${id}">
+            <div class="input-row">
+              <input type="text" id="url-${id}" placeholder="http://localhost:3001" 
+                value="${emp.clawdbot?.url || ''}">
+              <input type="text" id="token-${id}" placeholder="토큰 (선택)" 
+                value="${emp.clawdbot?.token || ''}">
+            </div>
+            <div class="input-row">
+              <input type="text" id="session-${id}" placeholder="세션키 (기본: employee-${id})"
+                value="${emp.clawdbot?.sessionKey || ''}">
+              <button class="btn-secondary" onclick="testConnection('${id}')">테스트</button>
+              <button class="btn-primary" onclick="saveClawdbot('${id}')">저장</button>
+              ${hasClawdbot ? `<button class="btn-danger" onclick="removeClawdbot('${id}')">제거</button>` : ''}
+            </div>
+            <div id="test-result-${id}"></div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+    
+    async function setMode(mode) {
+      await window.api.setConnectionMode(mode);
+      config.connectionMode = mode;
+      renderConfig();
+    }
+    
+    async function saveApiKey() {
+      const key = document.getElementById('api-key').value.trim();
+      if (key) {
+        const result = await window.api.setApiKey(key);
+        alert(result.success ? 'API 키 저장됨!' : '저장 실패');
+      }
+    }
+    
+    async function testConnection(id) {
+      const url = document.getElementById(`url-${id}`).value.trim();
+      const token = document.getElementById(`token-${id}`).value.trim();
+      const resultDiv = document.getElementById(`test-result-${id}`);
+      
+      if (!url) {
+        resultDiv.className = 'test-result error';
+        resultDiv.textContent = 'URL을 입력해주세요';
+        return;
+      }
+      
+      resultDiv.className = 'test-result';
+      resultDiv.textContent = '연결 테스트 중...';
+      
+      const result = await window.api.testClawdbot(url, token);
+      resultDiv.className = `test-result ${result.success ? 'success' : 'error'}`;
+      resultDiv.textContent = result.message;
+    }
+    
+    async function saveClawdbot(id) {
+      const url = document.getElementById(`url-${id}`).value.trim();
+      const token = document.getElementById(`token-${id}`).value.trim();
+      const sessionKey = document.getElementById(`session-${id}`).value.trim();
+      
+      if (!url) {
+        alert('URL을 입력해주세요');
+        return;
+      }
+      
+      await window.api.setEmployeeClawdbot(id, {
+        url,
+        token: token || null,
+        sessionKey: sessionKey || `employee-${id}`
+      });
+      
+      alert('저장됨!');
+      loadConfig();
+    }
+    
+    async function removeClawdbot(id) {
+      if (confirm('Clawdbot 연결을 제거하시겠습니까?')) {
+        await window.api.setEmployeeClawdbot(id, null);
+        loadConfig();
+      }
+    }
+    
+    // 초기 로드
+    loadConfig();
+  </script>
+</body>
+</html>

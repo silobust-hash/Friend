@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Office - 한동노무법인</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 타이틀바 (드래그 영역) -->
+  <div class="titlebar">
+    <div class="titlebar-drag">
+      <span class="titlebar-title">AI Office</span>
+    </div>
+    <div class="titlebar-controls">
+      <button class="tb-btn tb-minimize" onclick="api.windowMinimize()"></button>
+      <button class="tb-btn tb-maximize" onclick="api.windowMaximize()"></button>
+      <button class="tb-btn tb-close" onclick="api.windowClose()"></button>
+    </div>
+  </div>
+
+  <!-- API 키 설정 모달 -->
+  <div id="api-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h2>Anthropic API Key</h2>
+      <p>AI 직원들이 일하려면 API 키가 필요합니다.</p>
+      <input type="password" id="api-key-input" placeholder="sk-ant-..." />
+      <button id="api-key-submit" class="btn-primary">설정 완료</button>
+    </div>
+  </div>
+
+  <!-- 메인 레이아웃 -->
+  <div class="app-layout">
+    <!-- 왼쪽: 사무실 뷰 -->
+    <div class="office-panel">
+      <div class="office-header">
+        <h2>한동노무법인 가상 사무실</h2>
+        <div class="office-clock" id="clock"></div>
+      </div>
+      <div class="office-scene">
+        <div class="office-bg">
+          <div class="window-frame">
+            <div class="cloud c1"></div>
+            <div class="cloud c2"></div>
+          </div>
+        </div>
+        <div class="desks" id="desks-container">
+          <!-- JS로 직원 데스크 렌더링 -->
+        </div>
+      </div>
+
+      <!-- 직원 카드 그리드 -->
+      <div class="employee-grid" id="employee-grid">
+        <!-- JS로 렌더링 -->
+      </div>
+    </div>
+
+    <!-- 오른쪽: 채팅/대시보드 -->
+    <div class="chat-panel">
+      <div class="chat-tabs">
+        <button class="tab active" data-target="all">전체</button>
+        <!-- JS로 탭 추가 -->
+      </div>
+
+      <div class="chat-messages" id="chat-messages">
+        <div class="welcome-msg">
+          <p>안녕하세요, 대표님! 오늘도 좋은 하루 되세요.</p>
+          <p>직원을 클릭하거나 메시지를 보내보세요.</p>
+        </div>
+      </div>
+
+      <div class="chat-input-area">
+        <select id="chat-target">
+          <option value="all">전체</option>
+        </select>
+        <div class="input-wrapper">
+          <textarea id="chat-input" placeholder="메시지를 입력하세요..." rows="1"></textarea>
+          <button id="send-btn" class="btn-send">전송</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

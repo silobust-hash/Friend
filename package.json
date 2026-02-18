@@ -1,0 +1,16 @@
+{
+  "name": "ai-office",
+  "version": "1.0.0",
+  "description": "AI 팀원 가상 사무실 - 데스크톱 앱",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0"
+  },
+  "devDependencies": {
+    "electron": "^34.0.0"
+  }
+}

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  background: transparent;
+  overflow: hidden;
+  height: 100%;
+  user-select: none;
+  -webkit-app-region: drag;
+}
+
+.widget-bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+  padding: 10px 20px 16px;
+}
+
+.char-card {
+  -webkit-app-region: no-drag;
+  width: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+.char-card:hover { transform: translateY(-16px) scale(1.1); }
+.char-card.selected { transform: translateY(-18px) scale(1.12); }
+
+@keyframes bounce {
+  0% { transform: translateY(0) scale(1); }
+  30% { transform: translateY(-22px) scale(1.12); }
+  50% { transform: translateY(-14px) scale(1.08); }
+  70% { transform: translateY(-18px) scale(1.1); }
+  100% { transform: translateY(-16px) scale(1.1); }
+}
+
+.char-glow {
+  position: absolute;
+  bottom: 28px;
+  width: 90px; height: 90px;
+  border-radius: 22px;
+  opacity: 0.35;
+  filter: blur(22px);
+  transition: opacity 0.3s;
+}
+
+.char-card:hover .char-glow { opacity: 0.65; }
+
+.char-frame {
+  width: 88px; height: 88px;
+  border-radius: 22px;
+  overflow: hidden;
+  position: relative;
+  z-index: 2;
+  border: 2.5px solid rgba(255,255,255,0.12);
+  background: rgba(15, 15, 35, 0.88);
+  backdrop-filter: blur(12px);
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.char-card:hover .char-frame {
+  border-color: rgba(255,255,255,0.3);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+.char-card.selected .char-frame {
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.4), 0 10px 40px rgba(0,0,0,0.5);
+}
+
+.char-avatar {
+  width: 72px; height: 72px;
+  transition: transform 0.3s;
+}
+
+.char-avatar svg { width: 100%; height: 100%; }
+
+/* ─── idle: 둥실둥실 떠다니기 ─── */
+.char-card.working .char-avatar { animation: float 3s ease-in-out infinite; }
+.char-card:nth-child(1) .char-avatar { animation-delay: 0s; }
+.char-card:nth-child(2) .char-avatar { animation-delay: 0.6s; }
+.char-card:nth-child(3) .char-avatar { animation-delay: 1.2s; }
+.char-card:nth-child(4) .char-avatar { animation-delay: 0.3s; }
+.char-card:nth-child(5) .char-avatar { animation-delay: 0.9s; }
+
+.char-card.resting .char-avatar { opacity: 0.55; filter: saturate(0.5); animation: floatSlow 5s ease-in-out infinite; }
+.char-card.vacation .char-avatar { opacity: 0.25; filter: grayscale(0.8); }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* ─── idle: 눈 깜빡이기 ─── */
+.char-eyes { animation: blink 4s ease-in-out infinite; }
+.char-card:nth-child(2) .char-eyes { animation-delay: 1s; }
+.char-card:nth-child(3) .char-eyes { animation-delay: 2s; }
+.char-card:nth-child(4) .char-eyes { animation-delay: 0.5s; }
+.char-card:nth-child(5) .char-eyes { animation-delay: 1.5s; }
+
+@keyframes blink {
+  0%, 42%, 46%, 100% { transform: scaleY(1); }
+  44% { transform: scaleY(0.1); }
+}
+
+/* ─── 손 흔들기 (기본 숨김, hover 시 등장) ─── */
+.char-hand {
+  opacity: 0;
+  transform-origin: 88px 78px;
+  transition: opacity 0.2s;
+}
+.char-card:hover .char-hand {
+  opacity: 1;
+  animation: wave 0.6s ease-in-out 3;
+}
+@keyframes wave {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-20deg); }
+  75% { transform: rotate(15deg); }
+}
+
+/* ─── 입 전환 (hover 시 웃기) ─── */
+.char-mouth-smile { opacity: 0; }
+.char-mouth { opacity: 1; transition: opacity 0.2s; }
+.char-card:hover .char-mouth { opacity: 0; }
+.char-card:hover .char-mouth-smile { opacity: 1; }
+
+/* ─── hover: 통통 바운스 ─── */
+.char-card:hover { animation: bounce 0.5s ease; }
+
+.char-status {
+  position: absolute;
+  bottom: -2px; right: -2px;
+  z-index: 3;
+  display: flex; align-items: center; gap: 3px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+}
+
+.char-status.working { background: rgba(0,184,148,0.9); color: #fff; box-shadow: 0 0 10px rgba(0,184,148,0.4); }
+.char-status.resting { background: rgba(253,203,110,0.9); color: #333; }
+.char-status.vacation { background: rgba(225,112,85,0.9); color: #fff; }
+
+.status-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.char-status.working .status-dot { animation: pulse 1.5s ease-in-out infinite; }
+
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+.char-name {
+  margin-top: 6px;
+  font-size: 11px; font-weight: 600;
+  color: rgba(255,255,255,0.88);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  text-align: center; z-index: 2;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.char-role {
+  font-size: 9px;
+  color: rgba(255,255,255,0.4);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  text-align: center; z-index: 2;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ─── 말풍선 ─── */
+.speech-bubble {
+  position: absolute;
+  top: -8px; left: 50%;
+  transform: translateX(-50%) scale(0);
+  background: rgba(255,255,255,0.95);
+  color: #222;
+  font-size: 11px; font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 12px;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  z-index: 10;
+  pointer-events: none;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s;
+  opacity: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -6px; left: 50%;
+  transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 7px solid rgba(255,255,255,0.95);
+}
+.char-card:hover .speech-bubble {
+  transform: translateX(-50%) scale(1);
+  opacity: 1;
+}
+
+.top-btns {
+  -webkit-app-region: no-drag;
+  position: fixed; top: 8px; right: 12px;
+  display: flex; gap: 6px; z-index: 100;
+}
+
+.top-btn {
+  width: 42px; height: 42px; border-radius: 50%;
+  border: none; cursor: pointer;
+  background: rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.85);
+  font-size: 20px;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s;
+}
+.top-btn:hover {
+  background: rgba(108,92,231,0.8); color: #fff;
+  transform: scale(1.1);
+}
+.top-btn.hide-btn:hover {
+  background: rgba(225,112,85,0.8);
+}
+.top-btn.settings-btn:hover {
+  background: rgba(255,255,255,0.25);
+}
+</style>
+</head>
+<body>
+<div class="top-btns">
+  <button class="top-btn" onclick="api.openMeeting()" title="회의실">🏢</button>
+  <button class="top-btn settings-btn" onclick="api.openSettings()" title="설정">⚙️</button>
+  <button class="top-btn hide-btn" onclick="api.hideApp()" title="숨기기">✕</button>
+</div>
+<div class="widget-bar" id="widget-bar"></div>
+<script src="characters.js"></script>
+<script>
+  const statusLabels = { working: '업무 중', resting: '휴식중', vacation: '휴가' };
+  const greetings = {
+    kim: '안녕하십니까',
+    park: '안녕하세요~',
+    oh: '안전 제일!',
+    lee: '하이~!',
+    jung: '반갑습니다'
+  };
+
+  async function renderWidget() {
+    const employees = await api.getEmployees();
+    const bar = document.getElementById('widget-bar');
+    bar.innerHTML = employees.map(emp => `
+      <div class="char-card ${emp.status}" data-id="${emp.id}" onclick="handleClick('${emp.id}')">
+        <div class="speech-bubble">${greetings[emp.id] || '안녕!'}</div>
+        <div class="char-glow" style="background: ${emp.color}"></div>
+        <div class="char-frame">
+          <div class="char-avatar">${createCharSVG(emp.id)}</div>
+          <div class="char-status ${emp.status}">
+            <span class="status-dot"></span>
+            ${emp.statusLabel || statusLabels[emp.status]}
+          </div>
+        </div>
+        <div class="char-name">${emp.name}</div>
+        <div class="char-role">${emp.role}</div>
+      </div>
+    `).join('');
+  }
+
+  let selectedId = null;
+
+  function handleClick(id) {
+    document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
+    document.querySelector(`.char-card[data-id="${id}"]`).classList.add('selected');
+    selectedId = id;
+    api.openDashboard(id);
+  }
+
+  api.onStatusUpdated(() => renderWidget());
+  renderWidget();
+</script>
+</body>
+</html>
